@@ -151,7 +151,7 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
         private void TotalCW(out List<double> peaks, out List<double> freqs, out List<double> contracts)
         {
             //粗扫
-            CW(out freqs, out contracts, out List<double> ps, out List<double> fitcontracts, 2600, 3200, 2, 500, 2, EndPointCount: 4);
+            CW(out freqs, out contracts, out List<double> ps, out List<double> fitcontracts, 2600, 3200, GetInputParamValueByName("CoarseStep"), 500, 2, GetInputParamValueByName("CoarseCount"));
 
             if (ps.Count == 1)
             {
@@ -204,7 +204,7 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
             fitcontracts = new List<double>();
             Frequences = new List<double>();
             Contracts = new List<double>();
-            #region 测试代码，生成随机结果
+            //#region 测试代码，生成随机结果
             //double cc = r.Next(0, 40);
             //fitpeaks.Add(2870 - cc);
             //fitpeaks.Add(2870 + cc);
@@ -216,7 +216,7 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
             //    Contracts.Add(r.NextDouble());
             //}
             //return;
-            #endregion
+            //#endregion
             List<ParamB> InputParams = new List<ParamB>()
             {
                 new Param<double>("频率起始点(MHz)",startFreq,"RFFreqLo"),
@@ -295,7 +295,7 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
         // 扫描出CW谱的准确峰位置
         // 先粗扫后细扫(步长先设置为2MHz,确定峰位置之后按步长0.2MHz扫描)
         // 范围限制,扫描范围在2400Mhz到3400Mhz之间
-        protected void ScanCW(out List<double> peaks, out List<double> freqvalues, out List<double> contractvalues, double peakapprox, int EndPointCount, double scanWidth = 30, bool isReverse = false)
+        protected void ScanCW(out List<double> peaks, out List<double> freqvalues, out List<double> contractvalues, double peakapprox, double scanWidth = 30, bool isReverse = false)
         {
             if (peakapprox < 2100 || peakapprox > 3500)
             {
@@ -304,8 +304,14 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
                 contractvalues = new List<double>();
                 return;
             }
+
+            double coarsestep = GetInputParamValueByName("CoarseStep");
+            double finestep = GetInputParamValueByName("FineStep");
+            int coarsecount = GetInputParamValueByName("CoarseCount");
+            int finecount = GetInputParamValueByName("FineCount");
+
             peaks = new List<double>();
-            CW(out freqvalues, out contractvalues, out List<double> freqs, out List<double> fitcontracts, startFreq: peakapprox - scanWidth, endFreq: peakapprox + scanWidth, step: 2, averagetime: 500, peakcount: 1, EndPointCount: 4, isReverse: isReverse);
+            CW(out freqvalues, out contractvalues, out List<double> freqs, out List<double> fitcontracts, startFreq: peakapprox - scanWidth, endFreq: peakapprox + scanWidth, step: coarsestep, averagetime: 500, peakcount: 1, EndPointCount: coarsecount, isReverse: isReverse);
 
             double f1 = 0;
             if (freqs.Count != 0)
@@ -318,11 +324,11 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
                 //如果扫到的峰在范围边缘则扩大范围扫描
                 if (Math.Abs(f1 - peakapprox + scanWidth) < 3)
                 {
-                    CW(out freqvalues, out contractvalues, out freqs, out fitcontracts, startFreq: peakapprox - scanWidth - 20, endFreq: peakapprox - scanWidth + 20, step: 2, averagetime: 500, peakcount: 1, EndPointCount: 4, isReverse: isReverse);
+                    CW(out freqvalues, out contractvalues, out freqs, out fitcontracts, startFreq: peakapprox - scanWidth - 20, endFreq: peakapprox - scanWidth + 20, step: coarsestep, averagetime: 500, peakcount: 1, EndPointCount: coarsecount, isReverse: isReverse);
                     if (freqs.Count != 0)
                     {
                         //细扫
-                        CW(out freqvalues, out contractvalues, out List<double> f1s, out fitcontracts, startFreq: freqs[0] - 5, endFreq: freqs[0] + 5, step: 1, averagetime: 2000, peakcount: 1, EndPointCount: 10, isReverse: isReverse);
+                        CW(out freqvalues, out contractvalues, out List<double> f1s, out fitcontracts, startFreq: freqs[0] - 5, endFreq: freqs[0] + 5, step: finestep, averagetime: 2000, peakcount: 1, EndPointCount: finecount, isReverse: isReverse);
                         if (f1s.Count != 0)
                         {
                             peaks.Add(f1s[0]);
@@ -331,10 +337,10 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
                 }
                 if (Math.Abs(f1 - peakapprox - scanWidth) < 3)
                 {
-                    CW(out freqvalues, out contractvalues, out freqs, out fitcontracts, startFreq: peakapprox + scanWidth - 20, endFreq: peakapprox + scanWidth + 20, step: 2, averagetime: 500, peakcount: 1, EndPointCount: 4, isReverse: isReverse);
+                    CW(out freqvalues, out contractvalues, out freqs, out fitcontracts, startFreq: peakapprox + scanWidth - 20, endFreq: peakapprox + scanWidth + 20, step: coarsestep, averagetime: 500, peakcount: 1, EndPointCount: coarsecount, isReverse: isReverse);
                     if (freqs.Count != 0)
                     {
-                        CW(out freqvalues, out fitcontracts, out List<double> f1s, out fitcontracts, startFreq: freqs[0] - 5, endFreq: freqs[0] + 5, step: 1, averagetime: 2000, peakcount: 1, EndPointCount: 10, isReverse: isReverse);
+                        CW(out freqvalues, out fitcontracts, out List<double> f1s, out fitcontracts, startFreq: freqs[0] - 5, endFreq: freqs[0] + 5, step: finestep, averagetime: 2000, peakcount: 1, EndPointCount: finecount, isReverse: isReverse);
                         if (f1s.Count != 0)
                         {
                             peaks.Add(f1s[0]);
@@ -343,7 +349,7 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
                 }
                 if (Math.Abs(f1 - peakapprox + scanWidth) >= 3 && Math.Abs(f1 - peakapprox - scanWidth) >= 3)
                 {
-                    CW(out freqvalues, out contractvalues, out List<double> f1s, out fitcontracts, startFreq: f1 - 5, endFreq: f1 + 5, step: 1, averagetime: 2000, peakcount: 1, EndPointCount: 10, isReverse: isReverse);
+                    CW(out freqvalues, out contractvalues, out List<double> f1s, out fitcontracts, startFreq: f1 - 5, endFreq: f1 + 5, step: finestep, averagetime: 2000, peakcount: 1, EndPointCount: finecount, isReverse: isReverse);
                     if (f1s.Count != 0)
                     {
                         peaks.Add(f1s[0]);
@@ -356,14 +362,14 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
         /// <summary>
         /// 扫两频点的CW谱
         /// </summary>
-        protected void ScanCW2(out double peakout1, out double peakout2, out List<double> freqsout, out List<double> contrastout, double peakapprox1, double peakapprox2, int EndPointCount, double scanWidth = 30)
+        protected void ScanCW2(out double peakout1, out double peakout2, out List<double> freqsout, out List<double> contrastout, double peakapprox1, double peakapprox2, double scanWidth = 30)
         {
             //寻找峰值较小值，正向扫描
             double p1 = Math.Min(peakapprox1, peakapprox2);
             double p2 = Math.Max(peakapprox1, peakapprox2);
 
-            ScanCW(out List<double> peak1, out List<double> freqsout1, out List<double> contrastout1, p1, EndPointCount, scanWidth, isReverse: false);
-            ScanCW(out List<double> peak2, out List<double> freqsout2, out List<double> contrastout2, p2, EndPointCount, scanWidth, isReverse: true);
+            ScanCW(out List<double> peak1, out List<double> freqsout1, out List<double> contrastout1, p1, scanWidth, isReverse: false);
+            ScanCW(out List<double> peak2, out List<double> freqsout2, out List<double> contrastout2, p2, scanWidth, isReverse: true);
 
             if (peak1.Count == 0 || peak2.Count == 0)
             {
@@ -572,7 +578,7 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
         }
 
         /// <summary>
-        /// 计算预测磁场
+        /// 计算预测磁场，输入theta、phi，返回磁铁xyzanlge磁场
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -580,61 +586,39 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
         {
             try
             {
+                double ang1 = PData.MagnetPhi;//临时测试用，之后加输入框
+                //处理输入磁铁角度ang1，使其在-150~150
+                ang1 = ang1 % 360;
+                if (ang1 > 150)
+                    ang1 -= 360;
+                if (ang1 < -150)
+                    ang1 += 360;
+                if (ang1 > 150)
+                    ang1 -= 180;
+
                 double the = PData.ThetaPredictInput;
                 double phi = PData.PhiPredictInput;
                 double currentzloc = PData.ZPredictHeightInput;
 
 
+                double ang = GetReverseNum(GetInputParamValueByName("ReverseA")) * (ang1 - GetInputParamValueByName("AngleStart"));
+
                 double zdis = GetReverseNum(GetInputParamValueByName("ReverseZ")) * (currentzloc - PData.ZLoc) + PData.ZDistance;
 
                 Magnet m = new Magnet(GetInputParamValueByName("MRadius"), GetInputParamValueByName("MLength"), 1);
 
-                List<double> res = m.FindDire(the, phi, zdis);
-                double ang = res[0];
-                double dx = -res[1];
-                double dy = -res[2];
-                double B = res[3];
+                List<double> res = m.FindDire_fixedPhi(the, phi, zdis, ang);
+                double dx = -res[0];
+                double dy = -res[1];
+                double B = res[2];
                 double dz = zdis - PData.ZDistance;
                 dx *= GetReverseNum(GetInputParamValueByName("ReverseX"));
                 dy *= GetReverseNum(GetInputParamValueByName("ReverseY"));
                 dz *= GetReverseNum(GetInputParamValueByName("ReverseZ"));
-                ang *= GetReverseNum(GetInputParamValueByName("ReverseA"));
-                double ang1 = GetInputParamValueByName("AngleStart") + ang;
 
                 List<double> doffs = GetTargetOffset(ang1);
                 double doffx = doffs[0];
                 double doffy = doffs[1];
-
-                if (ang1 > 150)
-                    ang1 -= 360;
-                if (ang1 < -150)
-                    ang1 += 360;
-
-                //角度超量程,取等效位置
-                if (Math.Abs(ang1) > 150)
-                {
-                    res = m.FindDire(180 - the, phi + 180, zdis);
-                    ang = res[0];
-                    dx = -res[1];
-                    dy = -res[2];
-                    B = res[3];
-                    dz = zdis - PData.ZDistance;
-                    dx *= GetReverseNum(GetInputParamValueByName("ReverseX"));
-                    dy *= GetReverseNum(GetInputParamValueByName("ReverseY"));
-                    dz *= GetReverseNum(GetInputParamValueByName("ReverseZ"));
-                    ang *= GetReverseNum(GetInputParamValueByName("ReverseA"));
-                    ang1 = GetInputParamValueByName("AngleStart") + ang;
-
-                    if (ang1 > 150)
-                        ang1 -= 360;
-                    if (ang1 < -150)
-                        ang1 += 360;
-
-                    //根据需要移动的角度进行偏心修正
-                    doffs = GetTargetOffset(ang1);
-                    doffx = doffs[0];
-                    doffy = doffs[1];
-                }
 
                 PData.XLocPredictOutPut = PData.XLoc + dx + doffx;
                 PData.YLocPredictOutPut = PData.YLoc + dy + doffy;
@@ -651,5 +635,91 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
             }
             catch (Exception ex) { return; }
         }
+
+        /// <summary>
+        /// 输入磁铁xyzanlge，返回nv处磁场方向theta、phi
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public void CalculateThePhi(PredictData PData)
+        {
+            try
+            {
+                //临时测试用，之后加输入框
+                double xM = -1.389,yM=-3.587, zM=-2,ang1=-80;
+         
+                //double the = PData.ThetaPredictInput;
+                //double phi = PData.PhiPredictInput;
+                //double currentzloc = PData.ZPredictHeightInput;
+
+
+                double ang = GetReverseNum(GetInputParamValueByName("ReverseA")) * (ang1 - GetInputParamValueByName("AngleStart"));
+                
+
+                Magnet m = new Magnet(GetInputParamValueByName("MRadius"), GetInputParamValueByName("MLength"), 1);
+
+                //List<double> res = m.FindDire_fixedPhi(the, phi, zdis, ang);
+                //double dx = -res[0];
+                //double dy = -res[1];
+                //double B = res[2];
+                List<double> doffs = GetTargetOffset(ang1);
+                double doffx = doffs[0];
+                double doffy = doffs[1];
+
+                double dz = GetReverseNum(GetInputParamValueByName("ReverseZ")) * (zM - PData.ZLoc) + PData.ZDistance;
+                double dx = (PData.XLoc  + doffx-xM)* GetReverseNum(GetInputParamValueByName("ReverseX"));
+                double dy = (PData.YLoc + doffy - yM) * GetReverseNum(GetInputParamValueByName("ReverseY"));
+
+                List<double> res = m.getThePhi(dx, dy, dz, ang);
+                double theta = res[0];
+                double phi = res[1];
+
+                PData.XLocPredictOutPut = PData.XLoc - dx * GetReverseNum(GetInputParamValueByName("ReverseX")) + doffx;
+                PData.YLocPredictOutPut = PData.YLoc - dy * GetReverseNum(GetInputParamValueByName("ReverseY")) + doffy;
+                PData.ZLocPredictOutPut = GetReverseNum(GetInputParamValueByName("ReverseZ")) * (dz - PData.ZDistance) + PData.ZLoc;
+                PData.ALocPredictOutPut = ang1;
+            }
+            catch (Exception ex) { return; }
+        }
+
+        public List<ChartData1D> CalculatePlotXYvsAng(PredictData PData)
+        {
+            List<ChartData1D> data = new List<ChartData1D>();
+            data.Add(new NumricChartData1D("角度值", "磁铁角度扫描数据", ChartDataType.X));
+            data.Add(new NumricChartData1D("X位移台位置", "磁铁角度扫描数据", ChartDataType.Y));
+            data.Add(new NumricChartData1D("Y位移台位置", "磁铁角度扫描数据", ChartDataType.Y));
+            data.Add(new NumricChartData1D("预测磁场", "磁铁角度扫描数据", ChartDataType.Y));
+            try
+            {
+                double the = PData.ThetaPredictInput;
+                double phi = PData.PhiPredictInput;
+                double currentzloc = PData.ZPredictHeightInput;
+                double zdis = GetReverseNum(GetInputParamValueByName("ReverseZ")) * (currentzloc - PData.ZLoc) + PData.ZDistance;
+
+                Magnet m = new Magnet(GetInputParamValueByName("MRadius"), GetInputParamValueByName("MLength"), 1);
+                for (double ang1 = -180; ang1 <= 180; ang1 += 5)
+                {
+                    double ang = GetReverseNum(GetInputParamValueByName("ReverseA")) * (ang1 - GetInputParamValueByName("AngleStart"));
+                    List<double> res = m.FindDire_fixedPhi(the, phi, zdis, ang);
+                    double dx = -res[0];
+                    double dy = -res[1];
+                    double B = res[2];
+                    dx *= GetReverseNum(GetInputParamValueByName("ReverseX"));
+                    dy *= GetReverseNum(GetInputParamValueByName("ReverseY"));
+
+                    List<double> doffs = GetTargetOffset(ang1);
+                    double doffx = doffs[0];
+                    double doffy = doffs[1];
+                    //输出计算得到的xy坐标图
+                    (data[0] as NumricChartData1D).Data.Add(ang1);
+                    (data[1] as NumricChartData1D).Data.Add(PData.XLoc + dx + doffx);
+                    (data[2] as NumricChartData1D).Data.Add(PData.YLoc + dy + doffy);
+                    (data[3] as NumricChartData1D).Data.Add(B);
+                }
+            }
+            catch (Exception ex) { data = new List<ChartData1D>(); }
+            return data;
+        }
+
     }
 }

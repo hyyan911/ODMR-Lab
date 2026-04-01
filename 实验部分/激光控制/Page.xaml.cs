@@ -180,7 +180,7 @@ namespace ODMR_Lab.激光控制
                         });
                     }
                     catch (Exception) { }
-                    Thread.Sleep(150);
+                    Thread.Sleep(50);
                 }
             });
             PlotThread.Start();

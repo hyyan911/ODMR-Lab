@@ -135,40 +135,40 @@ namespace ODMR_Lab
             {
                 bool canclose = true;
                 Thread t = new Thread(() =>
-                  {
-                      MessageWindow win = null;
-                      Dispatcher.Invoke(() =>
-                      {
-                          win = new MessageWindow("提示", "正在关闭设备并保存参数...", MessageBoxButton.OK, false, false);
-                          win.Owner = this;
-                          win.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-                          IsEnabled = false;
-                          win.Show();
-                          //保存界面参数
-                          ParamManager.SaveParams();
-                      });
-                      canclose = DeviceDispatcher.CloseDevicesAndSave();
-                      Dispatcher.Invoke(() =>
-                      {
-                          win.Close();
-                          if (canclose)
-                          {
-                              #region 调用页面的中止方法
-                              var pages = GetType().GetFields().Where(x => typeof(PageBase).IsAssignableFrom(x.FieldType));
-                              foreach (var item in pages)
-                              {
-                                  (item.GetValue(this) as PageBase).CloseBehaviour();
-                              }
-                              #endregion
-                              Close();
-                              Environment.Exit(0);
-                          }
-                          else
-                          {
-                              IsEnabled = true;
-                          }
-                      });
-                  });
+                {
+                    MessageWindow win = null;
+                    Dispatcher.Invoke(() =>
+                    {
+                        win = new MessageWindow("提示", "正在关闭设备并保存参数...", MessageBoxButton.OK, false, false);
+                        win.Owner = this;
+                        win.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                        IsEnabled = false;
+                        win.Show();
+                        //保存界面参数
+                        ParamManager.SaveParams();
+                    });
+                    canclose = DeviceDispatcher.CloseDevicesAndSave();
+                    Dispatcher.Invoke(() =>
+                    {
+                        win.Close();
+                        if (canclose)
+                        {
+                            #region 调用页面的中止方法
+                            var pages = GetType().GetFields().Where(x => typeof(PageBase).IsAssignableFrom(x.FieldType));
+                            foreach (var item in pages)
+                            {
+                                (item.GetValue(this) as PageBase).CloseBehaviour();
+                            }
+                            #endregion
+                            Close();
+                            Environment.Exit(0);
+                        }
+                        else
+                        {
+                            IsEnabled = true;
+                        }
+                    });
+                });
                 t.Start();
             }
         }

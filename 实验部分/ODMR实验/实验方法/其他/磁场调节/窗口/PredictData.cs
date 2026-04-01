@@ -25,6 +25,11 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
         public double ZPredictHeightInput { get; set; } = double.NaN;
 
         /// <summary>
+        /// 要预测的角度参数
+        /// </summary>
+        public double MagnetPhi { get; set; } = double.NaN;
+
+        /// <summary>
         /// 预测的X位置
         /// </summary>
         public double XLocPredictOutPut { get; set; } = double.NaN;
@@ -41,6 +46,7 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
         /// </summary>
         public double ALocPredictOutPut { get; set; } = double.NaN;
 
+
         /// <summary>
         /// 预测的磁场强度
         /// </summary>
@@ -55,11 +61,12 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
         public double NVTheta { get; private set; }
         public double NVPhi { get; private set; }
 
-        public PredictData(double XLoc, double YLoc, double ZLoc, double ZDistance, double NVTheta, double NVPhi, double Ptheta, double Pphi, double Pheight)
+        public PredictData(double XLoc, double YLoc, double ZLoc, double ZDistance, double NVTheta, double NVPhi, double Ptheta, double Pphi, double Pheight, double MPhi)
         {
             ThetaPredictInput = Ptheta;
             PhiPredictInput = Pphi;
             ZPredictHeightInput = Pheight;
+            MagnetPhi = MPhi;
 
             this.XLoc = XLoc;
             this.YLoc = YLoc;

@@ -25,6 +25,7 @@ using ODMR_Lab.设备部分;
 using ODMR_Lab.设备部分.位移台部分;
 using System.Threading;
 using ODMR_Lab.实验部分.ODMR实验.实验方法.其他.磁场调节.子实验;
+using ODMR_Lab.基本窗口;
 
 namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
 {
@@ -67,14 +68,19 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
                     double.Parse(CheckedPhi.Content.ToString()),
                     double.Parse(PredictTheta.Text),
                     double.Parse(PredictPhi.Text),
-                    double.Parse(PredictZ.Text));
+                    double.Parse(PredictZ.Text),
+                    double.Parse(MagnetPhi.Text));
+                //exp.CalculateThePhi(d);//！！临时测试用，正常使用时需删除此行
                 exp.CalculatePredictField(d);
                 PreX.Content = Math.Round(d.XLocPredictOutPut, 5).ToString();
                 PreY.Content = Math.Round(d.YLocPredictOutPut, 5).ToString();
                 PreA.Content = Math.Round(d.ALocPredictOutPut, 5).ToString();
                 PreB.Content = Math.Round(d.PredictB, 5).ToString();
             }
-            catch (Exception ex) { return; }
+            catch (Exception) {
+                MessageWindow.ShowTipWindow("读取数据出错，请检查输入数据", this);
+                return;
+            }
         }
 
         /// <summary>
@@ -163,6 +169,37 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
             {
                 MessageWindow.ShowTipWindow("移动未完成\n" + ex.Message, this);
             }
+        }
+
+        ChartViewerWindow window = new ChartViewerWindow(true);
+        /// <summary>
+        /// 画位置图
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Plot(object sender, RoutedEventArgs e)
+        {
+            window.Owner = this;
+            window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            try {
+                PredictData d = new PredictData(
+                        double.Parse(XLoc.Content.ToString()),
+                        double.Parse(YLoc.Content.ToString()),
+                        double.Parse(ZLoc.Content.ToString()),
+                        double.Parse(ZDistance.Content.ToString()),
+                        double.Parse(CheckedTheta.Content.ToString()),
+                        double.Parse(CheckedPhi.Content.ToString()),
+                        double.Parse(PredictTheta.Text),
+                        double.Parse(PredictPhi.Text),
+                        double.Parse(PredictZ.Text),
+                        double.Parse("0"));//不需要角度输入
+
+                window.ShowAs1D(exp.CalculatePlotXYvsAng(d));
+            }
+            catch (Exception) {
+                MessageWindow.ShowTipWindow("读取数据出错，请检查输入数据", this);
+            }
+
         }
     }
 }

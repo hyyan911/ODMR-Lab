@@ -28,8 +28,8 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
             // 获取偏心修正后的x,y位置
             List<double> xy = GetRealXYLoc(loc, GetOutputParamValueByName("XLoc"), GetOutputParamValueByName("YLoc"));
             // 设置XY
-            (GetDeviceByName("MagnetX") as NanoStageInfo).Device.MoveToAndWait(xy[0], 5000);
-            (GetDeviceByName("MagnetY") as NanoStageInfo).Device.MoveToAndWait(xy[1], 5000);
+            (GetDeviceByName("MagnetX") as NanoStageInfo).Device.MoveToAndWait(xy[0], 15000);
+            (GetDeviceByName("MagnetY") as NanoStageInfo).Device.MoveToAndWait(xy[1], 15000);
 
             return Experiment(stage, loc, 150, originOutput);
         }
@@ -75,7 +75,7 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
                 //AutoTrace
                 RunSubExperimentBlock(0, true);
                 JudgeThreadEndOrResumeAction();
-                ScanCW2(out double cw1, out double cw2, out freqs, out contracts, (double)originOutput[1], (double)originOutput[2], 5, scanWidth);
+                ScanCW2(out double cw1, out double cw2, out freqs, out contracts, (double)originOutput[1], (double)originOutput[2], scanWidth);
                 JudgeThreadEndOrResumeAction();
                 if (cw1 == 0 || cw2 == 0 || Math.Abs(cw1 - cw2) < 5)
                 {

@@ -1,5 +1,6 @@
 import math
 from enum import Enum
+from scipy.optimize import fsolve
 
 import scipy.special as ellip
 import scipy.integrate as inte
@@ -98,7 +99,7 @@ class Magnet:
         k = Magnet.__GetK(Magnet.__Getk2(self.r0, x, y, z, h))
         return ((self.r0 ** 2 - r2) * e + alpha2 * k) / (2 * alpha2 * numpy.sqrt(beta2))
 
-    # 得到目标磁场(磁感应强度沿Z轴正向,单位为高斯)
+    # 得到目标磁场(磁感应强度沿Z轴正向,单位为高斯)坐标定义：磁铁堆成轴为z
     def GetField(self, x, y, z):
         bG = inte.quad(lambda h: self.__getiG(x, y, z, h), -self.l0 / 2, self.l0 / 2)[0]
         bx = x * bG
@@ -188,7 +189,7 @@ def GetPillarIntensityField(radius, length, MIntensity, x, y, z):
     res = M.GetNVField(x, y, z)
     return math.sqrt(res[0] ** 2 + res[1] ** 2 + res[2] ** 2)
 
-
+#磁铁和NV在同一平面，坐标系：x为磁铁正向
 def GetAngle(M, x, dis):
     r = list()
     for i in x:
@@ -198,7 +199,7 @@ def GetAngle(M, x, dis):
         r.append(an)
     return numpy.array(r)
 
-
+# 指定：方向（targetthe，targetphi），距离d。默认：phi方向不变。计算：磁铁x，y
 # 指定方向和给定的Z方向距离，找出对应方向上的磁场，相对于角度基准点（磁铁朝向为X轴）要转动的角度，以及XY平面上相对于原点的坐标
 def FindDire(r0, l0, targetthe, targetphi, distance):
     M = Magnet(r0, l0, 0, 0, 1)
@@ -206,6 +207,7 @@ def FindDire(r0, l0, targetthe, targetphi, distance):
     res = opt.root(lambda x: GetAngle(M, x, distance) - targetthe, numpy.array([0]), tol=1e-5)
     r = res.x[0]
     B = M.GetField(0, distance, r)
+    # 计算detphi。相对NV动磁铁，所以反方向-180度
     detphi = targetphi - 180
     while detphi > 360:
         detphi -= 360
@@ -213,9 +215,51 @@ def FindDire(r0, l0, targetthe, targetphi, distance):
     while detphi < -360:
         detphi += 360
 
+    # 返回：转的phi，磁铁的x坐标，y坐标，磁场计算值
     return [detphi, r * math.cos(detphi / 180 * math.pi), r * math.sin(detphi / 180 * math.pi), math.sqrt(
         B[0] ** 2 + B[1] ** 2 + B[2] ** 2)]
 
+#2025.12.21新增
+# 对任意坐标xyz求磁场θφ（坐标系：x为磁铁正向）
+######问题：为什么之前有list？？？？？？？？？？？？？？？？？？？？？？？？？/
+def GetThePhi(r0,l0, x,y,z,theta1):#theta1是磁铁方向
+    M = Magnet(r0, l0, 0, 0, 1)
+    #坐标系转换：实验室坐标系(x,y,z)转到磁铁坐标系(xM,yM,z)
+    xM = x*math.cos(theta1/ 180 * math.pi)+y*math.sin(theta1/ 180 * math.pi)
+    yM = -x*math.sin(theta1/ 180 * math.pi)+y*math.cos(theta1/ 180 * math.pi)
+    #在磁铁坐标系计算(thetaM,phiM)
+    BM = M.GetField(yM,z, xM)
+    thetaM = math.atan2(math.sqrt(BM[0] ** 2 + BM[2] ** 2), BM[1])* 180 / math.pi
+    phiM = math.atan2(BM[0], BM[2])* 180 / math.pi
+    # 坐标系转换：磁铁坐标系(thetaM,phiM)转到实验室坐标系(thetaM,phiM)
+    theta = thetaM
+    phi = phiM+theta1
+    if phi < 0:phi+=360
+    return (theta, phi)
+
+#输入phi，输出x,y
+#r0, l0, targetthe, targetphi, distance
+def FindDireFixedPhi(r0, l0, targetTheta, targetPhi, distance, magnetPhi):
+    M = Magnet(r0, l0, 0, 0, 1)
+    targetPhi=targetPhi%360
+    def equations(vars):
+        x, y = vars
+        theta_val, phi_val = GetThePhi(r0,l0, x, y, distance,magnetPhi)
+
+        # 返回与目标值的差
+        return (theta_val - targetTheta, phi_val - targetPhi)
+
+    # 初始猜测值
+    initial_guessArray = [[5, 5],[-5,-5],[5,-5],[-5,5]]
+    # 求解
+    for initial_guess in initial_guessArray:
+        solution = fsolve(equations, initial_guess)
+        x_solution, y_solution = solution
+        if abs(x_solution)<20 and abs(y_solution)<20:
+            B = M.GetField(y_solution, distance, x_solution)
+            return (x_solution, y_solution, math.sqrt(B[0] ** 2 + B[1] ** 2 + B[2] ** 2))
+    # 如果都解不出来，返回nan
+    return (float('nan'), float('nan'), float('nan'))
 
 # 根据Z方向测到的两个值估算Z方向的距离
 def MagFun(M, x, dist):
@@ -232,3 +276,15 @@ def FindRoot(r0, l0, z1, z2, value):
     xs = [2 * r0]
     res = opt.root(lambda x: MagFun(M, x, abs(z1 - z2)) - value, numpy.array(xs), tol=1e-5)
     return res.x[0]
+
+
+
+"""
+    测试代码
+    绘制 x 和 y 随 phi 变化的曲线
+
+    参数:
+        phi_range: phi 的范围 (起始值, 结束值)，单位：度
+        num_points: 点的数量
+        figsize: 图形大小
+    """

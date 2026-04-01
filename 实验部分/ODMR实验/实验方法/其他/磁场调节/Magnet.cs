@@ -66,7 +66,18 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
             dynamic result = Python_NetInterpretor.ExcuteFunction(Path.Combine(Environment.CurrentDirectory, "Python", "Magnet.py"), "GetPillarNVField", TimeSpan.FromSeconds(2000), Radius, Length, Magnetization, x, y, z);
             return (double)result;
         }
-
+        /// <summary>
+        /// 
+        public List<double> getThePhi(double x, double y, double z,double angle1)
+        {
+            List<double> res = new List<double>();
+            dynamic result = Python_NetInterpretor.ExcuteFunction(Path.Combine(Environment.CurrentDirectory, "Python", "Magnet.py"), "GetThePhi", TimeSpan.FromSeconds(2000), Radius, Length, x, y, z,angle1);
+            foreach (var item in result)
+            {
+                res.Add((double)item);
+            }
+            return res;
+        }
         /// <summary>
         /// 指定方向和给定的Z方向距离，找出对应方向上的磁场，相对于零度要转动的角度，以及XY平面上相对于原点的坐标
         /// </summary>
@@ -78,6 +89,24 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
         {
             List<double> res = new List<double>();
             dynamic result = Python_NetInterpretor.ExcuteFunction(Path.Combine(Environment.CurrentDirectory, "Python", "Magnet.py"), "FindDire", TimeSpan.FromSeconds(2000), Radius, Length, targetthe, targetphi, distance);
+            foreach (var item in result)
+            {
+                res.Add((double)item);
+            }
+            return res;
+        }
+
+        /// <summary>
+        /// 指定方向和给定的Z方向距离，找出对应方向上的磁场，相对于零度要转动的角度，以及XY平面上相对于原点的坐标
+        /// </summary>
+        /// <param name="targetthe"></param>
+        /// <param name="targetphi"></param>
+        /// <param name=""></param>
+        /// <returns></returns>
+        public List<double> FindDire_fixedPhi(double targetthe, double targetphi, double distance, double MagnetPhi)
+        {
+            List<double> res = new List<double>();
+            dynamic result = Python_NetInterpretor.ExcuteFunction(Path.Combine(Environment.CurrentDirectory, "Python", "Magnet.py"), "FindDireFixedPhi", TimeSpan.FromSeconds(5000), Radius, Length, targetthe, targetphi, distance, MagnetPhi);
             foreach (var item in result)
             {
                 res.Add((double)item);

@@ -62,7 +62,11 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
           new Param<double>("Y扫描范围上限(mm)", double.NaN, "YScanHi"),
           new Param<double>("Y扫描范围下限(mm)", double.NaN, "YScanLo"),
           new Param<double>("Z扫描高度(mm)", double.NaN, "ZPlane"){ Helper="定位过程中磁铁保持的高度"},
-          new Param<double>("D值(Mhz)", double.NaN, "D")
+          new Param<double>("D值(Mhz)", 2870.0, "D"),
+          new Param<double>("粗扫步长(Mhz)", 3, "CoarseStep"),
+          new Param<double>("细扫步长(Mhz)",1, "FineStep"),
+          new Param<int>("粗扫结束后点数", 10, "CoarseCount"),
+          new Param<int>("细扫结束后点数", 20, "FineCount"),
         };
         public override List<ParamB> OutputParams { get; set; } = new List<ParamB>()
         {
@@ -112,7 +116,7 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
                 (GetDeviceByName("MagnetAngle") as NanoStageInfo).Device.MoveToAndWait(GetAngleX(), 60000);
                 //X方向扫描
                 ScanX(0, 20);
-                //OutputParams.Add(new Param<double>("X方向磁场最大位置", 7.787, "XLoc"));
+                //OutputParams.Add(new Param<double>("X方向磁场最大位置", -0.37, "XLoc"));
                 SetExpState("正在扫描Y轴...");
                 //旋转台移动到轴向沿X
                 Thread.Sleep(500);
@@ -135,24 +139,24 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
                 OutputParams.Add(new Param<double>("Y方向磁场最大位置", GetInputParamValueByName("YInitLoc"), "YLoc"));
             }
             //移动X,Y到最大值
-            (GetDeviceByName("MagnetX") as NanoStageInfo).Device.MoveToAndWait(GetOutputParamValueByName("XLoc"), 10000);
+            (GetDeviceByName("MagnetX") as NanoStageInfo).Device.MoveToAndWait(GetOutputParamValueByName("XLoc"), 20000);
             JudgeThreadEndOrResumeAction?.Invoke();
-            (GetDeviceByName("MagnetY") as NanoStageInfo).Device.MoveToAndWait(GetOutputParamValueByName("YLoc"), 10000);
+            (GetDeviceByName("MagnetY") as NanoStageInfo).Device.MoveToAndWait(GetOutputParamValueByName("YLoc"), 20000);
             JudgeThreadEndOrResumeAction?.Invoke();
             //Z扫描
             ScanZ(40, 60);
             JudgeThreadEndOrResumeAction?.Invoke();
-            //角度扫描
+            //角度扫描5
             SetExpState("正在扫描角度轴...");
-            (GetDeviceByName("MagnetZ") as NanoStageInfo).Device.MoveToAndWait(GetOutputParamValueByName("ZLoc"), 10000);
+            (GetDeviceByName("MagnetZ") as NanoStageInfo).Device.MoveToAndWait(GetOutputParamValueByName("ZLoc"), 20000);
             JudgeThreadEndOrResumeAction?.Invoke();
             ScanAngle(60, 80);
-            //OutputParams.Add(new Param<double>("θ值1", 57.0121, "Theta1"));
-            //OutputParams.Add(new Param<double>("θ值2", 122.9878, "Theta2"));
-            //OutputParams.Add(new Param<double>("φ值1", 270.9360, "Phi1"));
-            //OutputParams.Add(new Param<double>("φ值2", 90.9360, "Phi2"));
+            //////OutputParams.Add(new Param<double>("θ值1", 57.0121, "Theta1"));
+            ////OutputParams.Add(new Param<double>("θ值2", 122.9878, "Theta2"));
+            ////OutputParams.Add(new Param<double>("φ值1", 270.9360, "Phi1"));
+            ////OutputParams.Add(new Param<double>("φ值2", 90.9360, "Phi2"));
             JudgeThreadEndOrResumeAction?.Invoke();
-            //角度检查
+            ////角度检查
             CheckAngle(80, 100);
         }
 

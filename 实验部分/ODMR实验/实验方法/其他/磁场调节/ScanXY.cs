@@ -134,6 +134,8 @@ namespace ODMR_Lab.实验部分.ODMR实验.实验方法.其他
                    new List<double>() { 10, 10, 10 }, Pow2, AlgorithmType.LevenbergMarquardt, 5000);
                 //计算峰值
                 peak = param[1];
+                if (peak < scanmin) peak = scanmin;
+                if (peak > scanmax) peak = scanmax;
                 //步长减半，范围减半
                 step /= 2;
                 scanrange = Math.Abs(scanmax - scanmin);

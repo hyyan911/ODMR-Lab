@@ -161,6 +161,12 @@ namespace ODMR_Lab.设备部分
                 SetDevEvent=new Action<List<InfoBase>>(x=>MainWindow.Dev_PowerMeterPage.PowerMeterList.AddRange(x.Select(v=>v as PowerMeterInfo).ToList())),
                 GetDevEvent=new DeviceDispatcherInfoBase.GetDevHandler(()=>{return MainWindow.Dev_PowerMeterPage.PowerMeterList.Select(x=>x as InfoBase).ToList(); })
             },
+            //电源
+            new DeviceDispatcherInfo<PowerInfo>(DeviceTypes.电源,MainWindow.Dev_PowerPage,MainWindow.Dev_PowerPage.PowerList)
+            {
+                SetDevEvent=new Action<List<InfoBase>>(x=>MainWindow.Dev_PowerPage.PowerList.AddRange(x.Select(v=>v as PowerInfo).ToList())),
+                GetDevEvent=new DeviceDispatcherInfoBase.GetDevHandler(()=>{return MainWindow.Dev_PowerPage.PowerList.Select(x=>x as InfoBase).ToList(); })
+            },
             //APD
             new DeviceDispatcherInfo<APDInfo>(DeviceTypes.光子计数器,MainWindow.Dev_APDPage,MainWindow.Dev_APDPage.APDs)
             {
@@ -172,12 +178,6 @@ namespace ODMR_Lab.设备部分
             {
                 SetDevEvent=new Action<List<InfoBase>>(x=>MainWindow.Dev_RFSource_LockInPage.LockIns.AddRange(x.Select(v=>v as LockinInfo).ToList())),
                 GetDevEvent=new DeviceDispatcherInfoBase.GetDevHandler(()=>{return MainWindow.Dev_RFSource_LockInPage.LockIns.Select(x=>x as InfoBase).ToList(); })
-            },
-            //电源
-            new DeviceDispatcherInfo<PowerInfo>(DeviceTypes.电源,MainWindow.Dev_PowerPage,MainWindow.Dev_PowerPage.PowerList)
-            {
-                SetDevEvent=new Action<List<InfoBase>>(x=>MainWindow.Dev_PowerPage.PowerList.AddRange(x.Select(v=>v as PowerInfo).ToList())),
-                GetDevEvent=new DeviceDispatcherInfoBase.GetDevHandler(()=>{return MainWindow.Dev_PowerPage.PowerList.Select(x=>x as InfoBase).ToList(); })
             },
             //板卡
             new DeviceDispatcherInfo<PulseBlasterInfo>(DeviceTypes.PulseBlaster,MainWindow.Dev_PBPage,MainWindow.Dev_PBPage.PBs)
